@@ -1,0 +1,103 @@
+{
+  "parents": [
+    {
+      "id": "1760102718040",
+      "name": "Ferraz",
+      "email": "parent@test.com",
+      "password": "12345",
+      "photo": "http://192.168.1.146:3000/uploads/1760170458892.jpg",
+      "children": [
+        {
+          "id": "1760103886913",
+          "parentId": "1760102718040",
+          "name": "Rafael",
+          "photo": "http://192.168.1.146:3000/uploads/1760103886851.jpg",
+          "createdAt": "2025-10-10T13:44:46.913Z"
+        },
+        {
+          "id": "1760531424854",
+          "parentId": "1760102718040",
+          "name": "Rafael Ferraz",
+          "photo": "http://192.168.1.146:3000/uploads/1760531424807.jpg",
+          "createdAt": "2025-10-15T12:30:24.854Z"
+        }
+      ],
+      "createdAt": "2025-10-10T13:25:18.040Z"
+    }
+  ],
+  "children": [
+    {
+      "id": "1760103886913",
+      "parentId": "1760102718040",
+      "name": "Rafael",
+      "photo": "http://192.168.1.146:3000/uploads/1760103886851.jpg",
+      "createdAt": "2025-10-10T13:44:46.913Z"
+    },
+    {
+      "id": "1760531424854",
+      "parentId": "1760102718040",
+      "name": "Rafael Ferraz",
+      "photo": "http://192.168.1.146:3000/uploads/1760531424807.jpg",
+      "createdAt": "2025-10-15T12:30:24.854Z"
+    }
+  ],
+  "locations": [],
+  "zones": [
+    {
+      "id": "1760785909218",
+      "parentId": "1760102718040",
+      "childId": "1760103886913",
+      "name": "Maison",
+      "center": {
+        "lat": 46.341217974029675,
+        "lng": 6.48563839495182
+      },
+      "radius": 50,
+      "color": "#4A9BBF",
+      "enabled": true,
+      "createdAt": "2025-10-18T11:11:49.218Z"
+    },
+    {
+      "id": "1760785940428",
+      "parentId": "1760102718040",
+      "childId": "1760103886913",
+      "name": "École",
+      "center": {
+        "lat": 46.366351970423615,
+        "lng": 6.47201344370842
+      },
+      "radius": 50,
+      "color": "#4A9BBF",
+      "enabled": true,
+      "createdAt": "2025-10-18T11:12:20.428Z"
+    },
+    {
+      "id": "1760791405410",
+      "parentId": "1760102718040",
+      "childId": "1760531424854",
+      "name": "Maison",
+      "center": {
+        "lat": 46.34121265040471,
+        "lng": 6.485577374696732
+      },
+      "radius": 50,
+      "color": "#4A9BBF",
+      "enabled": true,
+      "createdAt": "2025-10-18T12:43:25.410Z"
+    },
+    {
+      "id": "1760791436504",
+      "parentId": "1760102718040",
+      "childId": "1760531424854",
+      "name": "École",
+      "center": {
+        "lat": 46.366809821073396,
+        "lng": 6.471690572798253
+      },
+      "radius": 100,
+      "color": "#4A9BBF",
+      "enabled": true,
+      "createdAt": "2025-10-18T12:43:56.504Z"
+    }
+  ]
+}
