@@ -15,7 +15,7 @@ require("dotenv").config();
 // 🔹 Initialisation serveur
 // =======================================================
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000; // 👈 Assure-toi que c’est bien le port 4000 utilisé dans Nginx
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: "*", methods: ["GET", "POST", "PUT", "DELETE"] },
@@ -39,7 +39,11 @@ app.use(cors());
 app.use(express.json({ limit: "5mb" }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Petit endpoint santé
+// 🔹 Import des routes d’authentification (auth.js)
+const authRoutes = require("./routes/auth");
+app.use("/api/auth", authRoutes);
+
+// 🔹 Endpoint de test (santé)
 app.get("/", (_req, res) => res.send("✅ KidShade backend up and running 🚀"));
 
 // =======================================================
@@ -98,8 +102,6 @@ const lastLocations = new Map();
 const history = new Map();
 const MAX_HISTORY = 100;
 const zoneState = new Map();
-const shares = new Map();
-const sharesByChild = new Map();
 
 // =======================================================
 // 🔹 Socket.io
@@ -108,9 +110,8 @@ io.on("connection", (socket) => {
   console.log("🟢 Client connecté:", socket.id);
 
   socket.on("joinParent", (parentId) => socket.join(`parent:${parentId}`));
-  socket.on("joinShare", (token) => socket.join(`share:${token}`));
-
   socket.on("locationUpdate", (data) => handleIncomingLocation(data, "SOCKET"));
+
   socket.on("disconnect", () =>
     console.log("🔴 Client déconnecté:", socket.id)
   );
@@ -138,18 +139,14 @@ function handleIncomingLocation(payload, via = "HTTP") {
   if (!childId || !parentId || !coords?.lat || !coords?.lng) return;
 
   const loc = { ...payload, timestamp: Date.now() };
-
-  // Historique court
   lastLocations.set(childId, loc);
   const arr = history.get(childId) || [];
   arr.push(loc);
   if (arr.length > MAX_HISTORY) arr.splice(0, arr.length - MAX_HISTORY);
   history.set(childId, arr);
 
-  // Diffusion
   io.to(`parent:${parentId}`).emit("locationUpdate", loc);
 
-  // Vérif zones
   Zone.find({ parentId, enabled: true }).then((zones) => {
     for (const z of zones) {
       const d = distanceMeters(coords, z.center);
@@ -175,47 +172,14 @@ function handleIncomingLocation(payload, via = "HTTP") {
 }
 
 // =======================================================
-// 🔹 ROUTES
+// 🔹 Autres routes locales (upload, zones, tracking)
 // =======================================================
-
-// Upload
 app.post("/upload", upload.single("photo"), (req, res) => {
   if (!req.file) return res.status(400).json({ msg: "Aucun fichier reçu" });
   const fileUrl = `${process.env.API_URL || "https://api.kidshade.net"}/uploads/${req.file.filename}`;
   res.json({ url: fileUrl });
 });
 
-// Auth / Parents
-app.post("/signup", async (req, res) => {
-  try {
-    const { name, email, password, photo } = req.body;
-    if (!name || !email || !password)
-      return res.status(400).json({ message: "Champs manquants" });
-
-    const exist = await Parent.findOne({ email });
-    if (exist) return res.status(409).json({ message: "Email déjà utilisé" });
-
-    const parent = await Parent.create({ name, email, password, photo });
-    res.json({ parent });
-  } catch (err) {
-    console.error("Erreur /signup", err);
-    res.status(500).json({ message: "Erreur serveur" });
-  }
-});
-
-app.post("/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const parent = await Parent.findOne({ email, password });
-    if (!parent)
-      return res.status(401).json({ message: "Identifiants invalides" });
-    res.json({ parentId: parent._id, parent });
-  } catch (e) {
-    res.status(500).json({ message: "Erreur serveur" });
-  }
-});
-
-// Zones
 app.get("/zones/:parentId", async (req, res) => {
   const zones = await Zone.find({ parentId: req.params.parentId });
   res.json(zones);
@@ -233,9 +197,7 @@ app.post("/zones", async (req, res) => {
 
 app.put("/zones/:zoneId", async (req, res) => {
   try {
-    const zone = await Zone.findByIdAndUpdate(req.params.zoneId, req.body, {
-      new: true,
-    });
+    const zone = await Zone.findByIdAndUpdate(req.params.zoneId, req.body, { new: true });
     res.json({ ok: true, zone });
   } catch (e) {
     console.error(e);
@@ -253,7 +215,6 @@ app.delete("/zones/:zoneId", async (req, res) => {
   }
 });
 
-// Tracking
 app.post("/tracking/update", (req, res) => {
   handleIncomingLocation(req.body, "HTTP");
   res.json({ msg: "Position enregistrée et diffusée ✅" });
